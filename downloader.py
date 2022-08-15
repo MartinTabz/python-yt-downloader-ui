@@ -1,13 +1,20 @@
 import string
+from turtle import bgcolor
 from pytube import YouTube
 from tkinter import *
 from tkinter import filedialog
 from tkinter.ttk import *
 import os
+from PIL import ImageTk,Image
+import customtkinter
 
 def exportovatLink():
     odkaz = input_odkazu.get()
     yt = YouTube(odkaz)
+    promenynazev = yt.title
+    nazevVidea = Label(obrazovka, text=promenynazev)
+    nazevVidea.config(font=('./img/Roboto-Regular.ttf', 15))
+    nazevVidea.grid(row=0, column=1)
     videa = yt.streams.all()
     vid = list(enumerate(videa))
     for i in vid:
@@ -27,12 +34,17 @@ obrazovka.configure(bg='#121212')
 obrazovka.resizable(0,0)
 title = obrazovka.title("YouTube Downloader")
 
+promenynazev = "Vložte odkaz na YouTube video a stiskněte exportovat"
+nazevVidea = Label(obrazovka, text=promenynazev)
+nazevVidea.config(font=('./img/Roboto-Regular.ttf', 15), background="#121212", foreground="White")
+nazevVidea.grid(row=0, column=0)
+
 export = Button(obrazovka, text="Exportovat", command=exportovatLink)
-export.pack()
+export.grid(row=1, column=1)
 
 input_odkazu = Entry()
 input_odkazu.config(width=50, font=('./img/Roboto-Regular.ttf', 15))
-input_odkazu.pack()
+input_odkazu.grid(row=1, column=0)
 
 def nastaveniSlozky():
     cesta = open('./cesta.txt', 'r+')
@@ -45,6 +57,7 @@ def nastaveniSlozky():
     cesta.close()
 
 nastaveni_img = PhotoImage(file = "./img/nastaveni.png")
-Button(obrazovka, image = nastaveni_img, compound = LEFT, command=nastaveniSlozky).pack(side = TOP)
+nastaveniBtn = Button(obrazovka, image = nastaveni_img, command=nastaveniSlozky)
+nastaveniBtn.grid(row=0, column=1)
 
 obrazovka.mainloop()
