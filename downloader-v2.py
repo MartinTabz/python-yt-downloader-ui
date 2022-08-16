@@ -1,8 +1,14 @@
 from cgitb import enable
+from doctest import OutputChecker, master
 import os
 from select import select
+from sqlite3 import Row
+from turtle import width
+from webbrowser import get
 from pytube import YouTube
-from tkinter import DISABLED, filedialog, font
+from tkinter import *
+from tkinter import filedialog
+from tkinter import ttk
 import tkinter
 import customtkinter
 import tkinter.messagebox
@@ -14,7 +20,7 @@ customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "gre
 class App(customtkinter.CTk):
 
     WIDTH = 780
-    HEIGHT = 520
+    HEIGHT = 350
 
     def __init__(self):
         super().__init__()
@@ -132,12 +138,14 @@ class App(customtkinter.CTk):
                                                 command=self.exportLink)
         self.button_5.grid(row=2, column=2, columnspan=1, pady=10, padx=10, sticky="we")
 
+
         # set default values
         self.optionmenu_1.set("Dark")
+        # self.combobox_1.set("Vyber export")
 
     def setExportFolder(self):
         cesta = open('./cesta.txt', 'r+')
-        if(os.path.getsize("./cesta.txt") == 0):
+        if(os.path.getsize("./cesta.txt") < 1):
             self.export_slozka = filedialog.askdirectory(initialdir="C:/", title="Vyber exportovací složku")
         else:
             self.export_slozka = filedialog.askdirectory(initialdir=cesta, title="Vyber exportovací složku")
@@ -166,6 +174,39 @@ class App(customtkinter.CTk):
                                                     fg_color=("white", "#202020"),  # <- custom tuple-color
                                                     justify=tkinter.LEFT)
             self.label_info_1.grid(column=0, row=0, columnspan=3, sticky="nwe", padx=10, pady=10)
+            videa = yt.streams.all()
+            vid = list(enumerate(videa))
+            self.cmb = ttk.Combobox(master=self.frame_right, value=vid, width=180, height=50)
+            # self.cmb.current(0)
+            # self.cmb.bind("<<ComboboxSelected>>", self.getStream())
+            self.cmb.grid(row=3, column=0, columnspan=4, pady=30, padx=10)
+            self.button_6 = customtkinter.CTkButton(master=self.frame_right,
+                                                text="Stáhnout",
+                                                border_width=2,
+                                                height=20,  # <- custom border_width
+                                                fg_color=None,  # <- no fg_color
+                                                command=self.stahnouVideo)
+            self.button_6.grid(row=4, column=0, columnspan=4, pady=10, padx=10, sticky="we")
+    
+        
+    # def getStream(self):
+    #     print("method is called")
+    #     print (self.cmb.get())
+
+    def stahnouVideo(self):
+        odkaz = self.entry.get()
+        yt = YouTube(odkaz)
+        videa = yt.streams.all()
+        print (self.cmb.get())
+        cesta_exportu = open('./cesta.txt', 'r')
+        strm = self.cmb.current()
+        videa[strm].download(cesta_exportu.read())
+        cesta_exportu.close()
+        print("Hotovo!")
+        
+
+                
+
 
 
     def change_appearance_mode(self, new_appearance_mode):
