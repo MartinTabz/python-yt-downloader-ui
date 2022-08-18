@@ -145,7 +145,7 @@ class App(customtkinter.CTk):
 
     def setExportFolder(self):
         cesta = open('./cesta.txt', 'r+')
-        if(os.path.getsize("./cesta.txt") < 1):
+        if os.path.getsize("./cesta.txt") < 1:
             self.export_slozka = filedialog.askdirectory(initialdir="C:/", title="Vyber exportovací složku")
         else:
             self.export_slozka = filedialog.askdirectory(initialdir=cesta, title="Vyber exportovací složku")
@@ -174,7 +174,14 @@ class App(customtkinter.CTk):
                                                     fg_color=("white", "#202020"),  # <- custom tuple-color
                                                     justify=tkinter.LEFT)
             self.label_info_1.grid(column=0, row=0, columnspan=3, sticky="nwe", padx=10, pady=10)
-            videa = yt.streams.all()
+            if self.radio_var.get() == 0:
+                videa = yt.streams.all()
+            elif self.radio_var.get() == 1:
+                videa = yt.streams.filter(only_video=True)
+            elif self.radio_var.get() == 2:
+                videa = yt.streams.filter(only_audio=True)
+            else:
+                videa = yt.streams.all()
             vid = list(enumerate(videa))
             self.cmb = ttk.Combobox(master=self.frame_right, value=vid, width=180, height=50)
             # self.cmb.current(0)
@@ -196,8 +203,14 @@ class App(customtkinter.CTk):
     def stahnouVideo(self):
         odkaz = self.entry.get()
         yt = YouTube(odkaz)
-        videa = yt.streams.all()
-        print (self.cmb.get())
+        if self.radio_var.get() == 0:
+                videa = yt.streams.all()
+        elif self.radio_var.get() == 1:
+                videa = yt.streams.filter(only_video=True)
+        elif self.radio_var.get() == 2:
+                videa = yt.streams.filter(only_audio=True)
+        else:
+                videa = yt.streams.all()
         cesta_exportu = open('./cesta.txt', 'r')
         strm = self.cmb.current()
         videa[strm].download(cesta_exportu.read())
