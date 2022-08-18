@@ -11,7 +11,7 @@ from tkinter import filedialog
 from tkinter import ttk
 import tkinter
 import customtkinter
-import tkinter.messagebox
+from tkinter import messagebox
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -154,46 +154,60 @@ class App(customtkinter.CTk):
         cesta.close()
 
     def exportLink(self):
-        odkaz = self.entry.get()
-        try:
-            yt = YouTube(odkaz)
-        except Exception:
+        if os.path.getsize("./cesta.txt") < 1:
             self.label_info_1 = customtkinter.CTkLabel(master=self.frame_info,
-                                                   text="Video nelze zpracovat, zkuste jiné" ,
-                                                   height=30,
-                                                   corner_radius=6,  # <- custom corner radius
-                                                   fg_color=("white", "#940020"),  # <- custom tuple-color
-                                                   justify=tkinter.LEFT)
-            self.label_info_1.grid(column=0, row=0, columnspan=3, sticky="nwe", padx=10, pady=10)
-        else:
-            videoName = yt.title
-            self.label_info_1 = customtkinter.CTkLabel(master=self.frame_info,
-                                                    text=videoName ,
+                                                    text="Neplatná exportovací složka!" ,
                                                     height=30,
                                                     corner_radius=6,  # <- custom corner radius
-                                                    fg_color=("white", "#202020"),  # <- custom tuple-color
+                                                    fg_color=("white", "#997103"),  # <- custom tuple-color
                                                     justify=tkinter.LEFT)
             self.label_info_1.grid(column=0, row=0, columnspan=3, sticky="nwe", padx=10, pady=10)
-            if self.radio_var.get() == 0:
-                videa = yt.streams.all()
-            elif self.radio_var.get() == 1:
-                videa = yt.streams.filter(only_video=True)
-            elif self.radio_var.get() == 2:
-                videa = yt.streams.filter(only_audio=True)
+            messagebox.showerror('Neplatná exportovací složka', 'Před exportováním určete složku, do které se budou stahovat soubory!')
+            cesta = open('./cesta.txt', 'r+')
+            self.export_slozka = filedialog.askdirectory(initialdir="C:/", title="Vyber exportovací složku")
+            cesta.write(self.export_slozka)
+            cesta.close()
+        else:
+            odkaz = self.entry.get()
+            try:
+                yt = YouTube(odkaz)
+            except Exception:
+                self.label_info_1 = customtkinter.CTkLabel(master=self.frame_info,
+                                                    text="Video nelze zpracovat, zkuste jiné" ,
+                                                    height=30,
+                                                    corner_radius=6,  # <- custom corner radius
+                                                    fg_color=("white", "#990303"),  # <- custom tuple-color
+                                                    justify=tkinter.LEFT)
+                self.label_info_1.grid(column=0, row=0, columnspan=3, sticky="nwe", padx=10, pady=10)
             else:
-                videa = yt.streams.all()
-            vid = list(enumerate(videa))
-            self.cmb = ttk.Combobox(master=self.frame_right, value=vid, width=180, height=50)
-            # self.cmb.current(0)
-            # self.cmb.bind("<<ComboboxSelected>>", self.getStream())
-            self.cmb.grid(row=3, column=0, columnspan=4, pady=30, padx=10)
-            self.button_6 = customtkinter.CTkButton(master=self.frame_right,
-                                                text="Stáhnout",
-                                                border_width=2,
-                                                height=20,  # <- custom border_width
-                                                fg_color=None,  # <- no fg_color
-                                                command=self.stahnouVideo)
-            self.button_6.grid(row=4, column=0, columnspan=4, pady=10, padx=10, sticky="we")
+                videoName = yt.title
+                self.label_info_1 = customtkinter.CTkLabel(master=self.frame_info,
+                                                        text=videoName ,
+                                                        height=30,
+                                                        corner_radius=6,  # <- custom corner radius
+                                                        fg_color=("white", "#202020"),  # <- custom tuple-color
+                                                        justify=tkinter.LEFT)
+                self.label_info_1.grid(column=0, row=0, columnspan=3, sticky="nwe", padx=10, pady=10)
+                if self.radio_var.get() == 0:
+                    videa = yt.streams.all()
+                elif self.radio_var.get() == 1:
+                    videa = yt.streams.filter(only_video=True)
+                elif self.radio_var.get() == 2:
+                    videa = yt.streams.filter(only_audio=True)
+                else:
+                    videa = yt.streams.all()
+                vid = list(enumerate(videa))
+                self.cmb = ttk.Combobox(master=self.frame_right, value=vid, width=180, height=50)
+                # self.cmb.current(0)
+                # self.cmb.bind("<<ComboboxSelected>>", self.getStream())
+                self.cmb.grid(row=3, column=0, columnspan=4, pady=30, padx=10)
+                self.button_6 = customtkinter.CTkButton(master=self.frame_right,
+                                                    text="Stáhnout",
+                                                    border_width=2,
+                                                    height=20,  # <- custom border_width
+                                                    fg_color=None,  # <- no fg_color
+                                                    command=self.stahnouVideo)
+                self.button_6.grid(row=4, column=0, columnspan=4, pady=10, padx=10, sticky="we")
     
         
     # def getStream(self):
