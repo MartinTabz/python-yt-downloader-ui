@@ -1,6 +1,6 @@
 from cgitb import enable
 from doctest import OutputChecker, master
-import os
+import os, sys
 from select import select
 from sqlite3 import Row
 from turtle import width
@@ -12,12 +12,21 @@ from tkinter import ttk
 import tkinter
 import customtkinter
 from tkinter import messagebox
+import webbrowser
 
 customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("blue")
 
+def resource_path(relative_path):
+        try:
+            base_path = sys._MEIPASS
+        except Exception:
+            base_path = os.path.abspath(".")
+
+        return os.path.join(base_path, relative_path)
 
 class App(customtkinter.CTk):
+
 
     # Konfigurace výšky a šířky hlavního okna
     WIDTH = 780
@@ -27,7 +36,7 @@ class App(customtkinter.CTk):
         super().__init__()
 
         # Okrajové informace (Nízev okna, favicona, etc...)
-        self.iconbitmap("./img/favicon.ico")
+        self.iconbitmap(resource_path("img/favicon.ico"))
         self.title("YouTube Downloader")
         self.geometry(f"{App.WIDTH}x{App.HEIGHT}")
         self.resizable(0,0)
@@ -63,6 +72,9 @@ class App(customtkinter.CTk):
         #Tlačítko nastavení exportovací složky
         self.button_1 = customtkinter.CTkButton(master=self.frame_left,text="Nastavení",command=self.setExportFolder)
         self.button_1.grid(row=2, column=0, pady=10, padx=20)
+
+        self.button_45 = customtkinter.CTkButton(master=self.frame_left,text="Info",command=self.openInfo)
+        self.button_45.grid(row=11, column=0, pady=10, padx=20,)
 
         # Přizpůsobení tmavého a světlého téma/zbarvení aplikace
         self.label_mode = customtkinter.CTkLabel(master=self.frame_left, text="Přizpůsobení:")
@@ -124,11 +136,30 @@ class App(customtkinter.CTk):
 
 
     # ============ Funkce pro aplikaci ============
-    
+    def openInfo(self):
+        window = customtkinter.CTkToplevel(self)
+        window.geometry("400x150")
+        window.iconbitmap(resource_path("img/favicon.ico"))
+        window.title("Info")
+        # window.resizable(0,0)
+
+        # create label on CTkToplevel window
+        label = customtkinter.CTkLabel(window, text="Vytvořil Martin Šíl")
+        label.grid(row=0, column=0, pady=8, padx=120,)
+
+        label = customtkinter.CTkLabel(window, text="Vytvořeno v Pythonu")
+        label.grid(row=1, column=0, pady=8, padx=120)
+
+        button_5 = customtkinter.CTkButton(window, text="Webové stránky",border_width=2,command=self.openWeb)
+        button_5.grid(row=2, column=0, columnspan=1, pady=8, padx=120, sticky="we")
+
+    def openWeb(self):
+        webbrowser.open("https://martinsil.cz/", new=1)
+
     # Otevření složkového dialogu pro vybrání místa stahování exportovaných videí
     def setExportFolder(self):
-        cesta = open('./cesta.txt', 'r+')
-        if os.path.getsize("./cesta.txt") < 1:
+        cesta = open(resource_path('cesta.txt'), 'r+')
+        if os.path.getsize(resource_path("./cesta.txt")) < 1:
             self.export_slozka = filedialog.askdirectory(initialdir="C:/", title="Vyber exportovací složku")
         else:
             self.export_slozka = filedialog.askdirectory(initialdir=cesta, title="Vyber exportovací složku")
@@ -138,11 +169,11 @@ class App(customtkinter.CTk):
 
     # Exportování vložené URL videa
     def exportLink(self):
-        if os.path.getsize("./cesta.txt") < 1: # Pokud textový soubor s cestou k exportovací složce je prázdný, ukáže se error a vyzve uživatele k vybrání této složky
+        if os.path.getsize(resource_path("./cesta.txt")) < 1: # Pokud textový soubor s cestou k exportovací složce je prázdný, ukáže se error a vyzve uživatele k vybrání této složky
             self.label_info_1 = customtkinter.CTkLabel(master=self.frame_info,text="Neplatná exportovací složka!",height=30,corner_radius=6,fg_color=("white", "#997103"),justify=tkinter.LEFT)
             self.label_info_1.grid(column=0, row=0, columnspan=3, sticky="nwe", padx=10, pady=10)
             messagebox.showerror('Neplatná exportovací složka', 'Před exportováním určete složku, do které se budou stahovat soubory!')
-            cesta = open('./cesta.txt', 'r+')
+            cesta = open(resource_path('./cesta.txt', 'r+'))
             self.export_slozka = filedialog.askdirectory(initialdir="C:/", title="Vyber exportovací složku")
             cesta.write(self.export_slozka)
             cesta.close()
@@ -169,30 +200,43 @@ class App(customtkinter.CTk):
                     videa = yt.streams.all()
 
                 vid = list(enumerate(videa))
+                
                 self.cmb = ttk.Combobox(master=self.frame_right, value=vid, width=180, height=50)
                 self.cmb.grid(row=3, column=0, columnspan=4, pady=30, padx=10)
+                
                 self.button_6 = customtkinter.CTkButton(master=self.frame_right,text="Stáhnout",border_width=2,height=20,fg_color=None,command=self.stahnouVideo)
                 self.button_6.grid(row=4, column=0, columnspan=4, pady=10, padx=10, sticky="we")
     
     # Stáhnutí vybraného streamu
     def stahnouVideo(self):
-        odkaz = self.entry.get()
-        yt = YouTube(odkaz)
-
-        # Podmínky pro určení filtrace
-        if self.radio_var.get() == 0:
-            videa = yt.streams.all()
-        elif self.radio_var.get() == 1:
-            videa = yt.streams.filter(only_video=True)
-        elif self.radio_var.get() == 2:
-            videa = yt.streams.filter(only_audio=True)
+        if os.path.getsize(resource_path("./cesta.txt")) < 1: # Pokud textový soubor s cestou k exportovací složce je prázdný, ukáže se error a vyzve uživatele k vybrání této složky
+            self.label_info_1 = customtkinter.CTkLabel(master=self.frame_info,text="Neplatná exportovací složka!",height=30,corner_radius=6,fg_color=("white", "#997103"),justify=tkinter.LEFT)
+            self.label_info_1.grid(column=0, row=0, columnspan=3, sticky="nwe", padx=10, pady=10)
+            messagebox.showerror('Neplatná exportovací složka', 'Před exportováním určete složku, do které se budou stahovat soubory!')
+            cesta = open(resource_path('./cesta.txt'), 'r+')
+            self.export_slozka = filedialog.askdirectory(initialdir="C:/", title="Vyber exportovací složku")
+            cesta.write(self.export_slozka)
+            cesta.close()
         else:
-            videa = yt.streams.all()
+            # self.button_5 = customtkinter.CTkButton(master=self.frame_right,text="Exportovat",border_width=2,fg_color=None,command=self.exportLink,state=tkinter.DISABLED)
+            # self.button_5.grid(row=2, column=2, columnspan=1, pady=10, padx=10, sticky="we")
+            odkaz = self.entry.get()
+            yt = YouTube(odkaz)
 
-        cesta_exportu = open('./cesta.txt', 'r')
-        strm = self.cmb.current() # Určení indexu zvoleného streamu integerem (číslem)
-        videa[strm].download(cesta_exportu.read()) # Stažení videa určitého streamu to vybrané složky exportu
-        cesta_exportu.close()
+            # Podmínky pro určení filtrace
+            if self.radio_var.get() == 0:
+                videa = yt.streams.all()
+            elif self.radio_var.get() == 1:
+                videa = yt.streams.filter(only_video=True)
+            elif self.radio_var.get() == 2:
+                videa = yt.streams.filter(only_audio=True)
+            else:
+                videa = yt.streams.all()
+
+            cesta_exportu = open(resource_path('./cesta.txt'), 'r')
+            strm = self.cmb.current() # Určení indexu zvoleného streamu integerem (číslem)
+            videa[strm].download(cesta_exportu.read()) # Stažení videa určitého streamu to vybrané složky exportu
+            cesta_exportu.close()
         
     # Změna tématu/zbarvení aplikace
     def change_appearance_mode(self, new_appearance_mode):
